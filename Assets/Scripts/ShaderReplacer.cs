@@ -20,7 +20,20 @@ public class ShaderReplacer : MonoBehaviour
             {
                 if (material != null)
                 {
+                    Texture mainTexture = material.mainTexture; // Preserve the main texture
                     material.shader = newShader;
+                    material.mainTexture = mainTexture; // Reassign the preserved texture
+
+                    // Set smoothness and metallic to 0
+                    if (material.HasProperty("_Metallic"))
+                    {
+                        material.SetFloat("_Metallic", 0f);
+                    }
+
+                    if (material.HasProperty("_Glossiness"))
+                    {
+                        material.SetFloat("_Glossiness", 0f);
+                    }
                 }
             }
         }
