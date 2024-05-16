@@ -7,73 +7,64 @@ using UnityEngine;
 public class FocusControl : MonoBehaviour
 {
     [SerializeField]
-    private Transform m_FocusTarget;
-    [SerializeField]
     private Transform m_DesiredPoint;
+
     [SerializeField]
-    private Transform m_map;
+    private Transform _startPoint;
 
     [SerializeField]
     private float m_mapDepth = 5;
 
     [SerializeField]
-    private Terrain m_terrain;
+    private Camera runtimeCamera; // Serialized camera field for runtime
+
+    private struct LatLong
+    {
+        public float Lat;
+        public float Long;
+    }
+    private Vector2 _focusLatLong;
+
+    // [SerializeField]
+    // private Terrain m_terrain;
+
+    [SerializeField]
+    private RealWorldTerrainMap _terrain;
+    [SerializeField]
+    private float _focusSpeed = 1;
+
+    private void OnEnable()
+    {
+        _focusLatLong = _terrain.GetCoordinates(_startPoint.position);
+        Debug.Log("Set start coordinates to " + _focusLatLong);
+    }
 
     void Update()
     {
-        //if (!Input.GetKeyDown(KeyCode.Space))
-        //{
-        //    return;
-        //}
-        var tempPos = m_DesiredPoint.position;
-        tempPos.y = m_terrain.transform.position.y + m_terrain.SampleHeight(tempPos);// GetGroundPos(tempPos).y;
-        m_DesiredPoint.position = tempPos;
+        var desiredFocusPoint = _terrain.GetGlobalPos(_focusLatLong.x, _focusLatLong.y);
+        m_DesiredPoint.position = desiredFocusPoint;
 
-       
-        var camPos = SceneView.lastActiveSceneView.camera.transform.position;
-        var dir = transform.position -camPos;
-
-        // Bit shift the index of the layer (8) to get a bit mask
-        int layerMask = 1 << 8;
-
-        var desiredPos = transform.position + (dir.normalized * m_mapDepth);
-
-        m_FocusTarget.transform.position = desiredPos;
-
-     
-        var offset = m_DesiredPoint.position - m_FocusTarget.position;
-        m_map.position -= offset;
-
-        RaycastHit hit;
-        // Does the ray intersect any objects excluding the player layer
-        if (Physics.Raycast(transform.position, dir.normalized, out hit, Mathf.Infinity, layerMask))
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
         {
-            Debug.DrawRay(SceneView.lastActiveSceneView.camera.transform.position, -dir.normalized * hit.distance, Color.yellow);
-            Debug.Log("Did Hit");
-
-          
+            var camPos = SceneView.lastActiveSceneView.camera.transform.position;
+            UpdateCameraPosition(camPos, desiredFocusPoint);
         }
-        else
+#endif
+
+        if (Application.isPlaying)
         {
-            Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * 1000, Color.white);
-            Debug.Log("Did not Hit");
-        }   
+            var camPos = runtimeCamera.transform.position;
+            UpdateCameraPosition(camPos, desiredFocusPoint);
+        }
     }
 
-    public Vector3 GetGroundPos(Vector3 atGlobalPos)
+    private void UpdateCameraPosition(Vector3 camPos, Vector3 desiredFocusPoint)
     {
-        int layerMask = 1 << 8;
-        RaycastHit hit;
-        if (Physics.Raycast(atGlobalPos + new Vector3(0,19999,0), Vector3.down, out hit, Mathf.Infinity, layerMask))
-        {
-           // Debug.DrawRay(SceneView.lastActiveSceneView.camera.transform.position, Vector3, Color.yellow);
-            Debug.Log("Did Hit");
-
-            return hit.point;   
-        }
-    
-          //  Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * 1000, Color.white);
-            Debug.Log("Did not Hit");
-        return atGlobalPos;
+        var dir = transform.position - camPos;
+        var desiredPos = transform.position + (dir.normalized * m_mapDepth);
+        var offset = desiredFocusPoint - desiredPos;
+        desiredPos = _terrain.transform.position - offset;
+        _terrain.transform.position = Vector3.Lerp(_terrain.transform.position, desiredPos, Time.deltaTime * _focusSpeed);
     }
 }
