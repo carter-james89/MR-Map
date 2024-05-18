@@ -12,7 +12,7 @@ public class RealWorldTerrainMap : MonoBehaviour, IMap
     {
         Vector3 outPos = Vector3.zero;
         bool validCoordinates = _terrain.GetWorldPosition((double)lat, (double)lon, out outPos);
-        Debug.Log(validCoordinates);
+      //  Debug.Log(validCoordinates);
         return outPos;
     }
 
