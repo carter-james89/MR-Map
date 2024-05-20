@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -57,6 +58,11 @@ public class FocusControl : MonoBehaviour
             var camPos = runtimeCamera.transform.position;
             UpdateCameraPosition(camPos, desiredFocusPoint);
         }
+    }
+
+    internal void SetFocusCoordintes(Vector2 vector2)
+    {
+        throw new NotImplementedException();
     }
 
     private void UpdateCameraPosition(Vector3 camPos, Vector3 desiredFocusPoint)

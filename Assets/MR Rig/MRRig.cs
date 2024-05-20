@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.Hands;
@@ -10,9 +11,10 @@ public class MRRig : MonoBehaviour
     private InputDevice leftHandDevice;
     private InputDevice rightHandDevice;
 
-    [SerializeField] private GameObject leftHand;
-    [SerializeField] private GameObject rightHand;
+    [SerializeField] private MRRigHand leftHand;
+    [SerializeField] private MRRigHand rightHand;
 
+  
     void Start()
     {
         var arCameraManager = GetComponentInChildren<ARCameraManager>();
@@ -36,20 +38,22 @@ public class MRRig : MonoBehaviour
 
         if (leftHandTracked)
         {
-            UpdateHandPosition(handSubsystem.leftHand, leftHand);
+            leftHand.UpdateHandPosition(handSubsystem.leftHand);
+            leftHand.DetectPinchGesture(handSubsystem.leftHand);
         }
         else
         {
-            leftHand.SetActive(false);
+            leftHand.gameObject.SetActive(false);
         }
 
         if (rightHandTracked)
         {
-            UpdateHandPosition(handSubsystem.rightHand, rightHand);
+            rightHand.UpdateHandPosition(handSubsystem.rightHand);
+            rightHand.DetectPinchGesture(handSubsystem.rightHand);
         }
         else
         {
-            rightHand.SetActive(false);
+            rightHand.gameObject.SetActive(false);
         }
     }
 
@@ -111,14 +115,7 @@ public class MRRig : MonoBehaviour
         }
     }
 
-    void UpdateHandPosition(XRHand hand, GameObject handObject)
-    {
-       // if (hand.TryGetRootPose(out Pose rootPose))
-      //  {
-            handObject.transform.localPosition = hand.rootPose.position;
-            handObject.transform.localRotation = hand.rootPose.rotation;
-            handObject.SetActive(true);
-           // Debug.Log($"Updated hand position: {rootPose.position}, rotation: {rootPose.rotation}");
-        //}
-    }
+
+
+ 
 }

@@ -8,6 +8,9 @@ public class RealWorldTerrainMap : MonoBehaviour, IMap
     [SerializeField]
     private RealWorldTerrainContainer _terrain;
 
+    [SerializeField]
+    private FocusControl _focusControl;
+
     public Vector3 GetGlobalPos(float lat, float lon)
     {
         Vector3 outPos = Vector3.zero;
@@ -45,5 +48,21 @@ public class RealWorldTerrainMap : MonoBehaviour, IMap
     void Update()
     {
 
+    }
+
+    public void OnRaycastHit(MapPointer mapPointer)
+    {
+
+        _focusControl.SetFocusCoordintes(GetCoordinates(mapPointer.transform.position));
+    }
+
+    public void OnPointerClickBegin(MapPointer mapPointer)
+    {
+       
+    }
+
+    public void OnPointerClickEnd(MapPointer mapPointer)
+    {
+       
     }
 }
