@@ -16,6 +16,13 @@ public class FocusControl : MonoBehaviour
     [SerializeField]
     private float m_mapDepth = 5;
 
+    //public Transform DebugBox;
+
+    public float GetMapDepth()
+    {
+        return m_mapDepth;
+    }
+
     [SerializeField]
     private Camera runtimeCamera; // Serialized camera field for runtime
 
@@ -62,7 +69,7 @@ public class FocusControl : MonoBehaviour
 
     internal void SetFocusCoordintes(Vector2 vector2)
     {
-        throw new NotImplementedException();
+        _focusLatLong = vector2;
     }
 
     private void UpdateCameraPosition(Vector3 camPos, Vector3 desiredFocusPoint)
@@ -72,5 +79,10 @@ public class FocusControl : MonoBehaviour
         var offset = desiredFocusPoint - desiredPos;
         desiredPos = _terrain.transform.position - offset;
         _terrain.transform.position = Vector3.Lerp(_terrain.transform.position, desiredPos, Time.deltaTime * _focusSpeed);
+    }
+
+    internal void SetFocusDepth(float mapZoom)
+    {
+       m_mapDepth = mapZoom;
     }
 }

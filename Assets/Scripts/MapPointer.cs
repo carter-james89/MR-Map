@@ -9,7 +9,8 @@ public class MapPointer : MonoBehaviour
 
     private LineRenderer _lineRenderer;
 
-    private Transform _lineOrigin;
+    [SerializeField] private Transform _hmd;
+    [SerializeField] private Transform _lineOrigin;
 
     private void Awake()
     {
@@ -40,16 +41,17 @@ public class MapPointer : MonoBehaviour
 
     void ShootRaycast()
     {
-        Ray ray = new Ray(_lineOrigin.position, _lineOrigin.transform.forward);
+        var dir = _lineOrigin.position - _hmd.position;
+        Ray ray = new Ray(_lineOrigin.position, dir);
         RaycastHit[] hits = Physics.RaycastAll(ray, rayDistance);
 
         foreach (RaycastHit hit in hits)
         {
-            mapComponent = hit.collider.GetComponent<IMap>();
+            mapComponent = hit.collider.GetComponentInParent<IMap>();
             if (mapComponent != null)
             {
-                Debug.Log($"Hit IMap component on {hit.collider.gameObject.name}");
-                transform.position = hit.collider.transform.position;
+               // Debug.Log($"Hit IMap component on {hit.collider.gameObject.name}");
+                transform.position = hit.point;
                 _lineRenderer.SetPosition(0,_lineOrigin.position);
                 _lineRenderer.SetPosition(1,transform.position);
                 mapComponent.OnRaycastHit(this);
