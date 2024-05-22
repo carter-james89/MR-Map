@@ -33,6 +33,11 @@ public class FocusControl : MonoBehaviour
     }
     private Vector2 _focusLatLong;
 
+    public Vector2 GetFocusLatLong()
+    {
+        return _focusLatLong;   
+    }
+
     // [SerializeField]
     // private Terrain m_terrain;
 

@@ -32,7 +32,7 @@ public class MRRigHand : MonoBehaviour
 
             if (distance < pinchThreshold)
             {
-                Debug.Log($"{handName} is pinching.");
+                //Debug.Log($"{handName} is pinching.");
                 if (!IsPinching)
                 {
                     IsPinching = true;
@@ -41,7 +41,7 @@ public class MRRigHand : MonoBehaviour
             }
             else
             {
-                Debug.Log($"{handName} is not pinching.");
+             //   Debug.Log($"{handName} is not pinching.");
                 if (IsPinching)
                 {
                     IsPinching = false;
