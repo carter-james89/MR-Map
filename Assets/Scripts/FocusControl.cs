@@ -46,7 +46,9 @@ public class FocusControl : MonoBehaviour
     [SerializeField]
     private float _focusSpeed = 1;
 
-    private void OnEnable()
+    private bool _running = true;
+
+    private void Awake()
     {
         _focusLatLong = _terrain.GetCoordinates(_startPoint.position);
         Debug.Log("Set start coordinates to " + _focusLatLong);
@@ -65,6 +67,10 @@ public class FocusControl : MonoBehaviour
         }
 #endif
 
+        if (!_running)
+        {
+            return;
+        }
         if (Application.isPlaying)
         {
             var camPos = runtimeCamera.transform.position;
@@ -85,9 +91,34 @@ public class FocusControl : MonoBehaviour
         desiredPos = _terrain.transform.position - offset;
         _terrain.transform.position = Vector3.Lerp(_terrain.transform.position, desiredPos, Time.deltaTime * _focusSpeed);
     }
+    private void CalculateFocusCoordinates()
+    {
+        var dir = transform.position - runtimeCamera.transform.position;
+        Ray ray = new Ray(transform.position, dir);
+        RaycastHit[] hits = Physics.RaycastAll(ray, 100);
+
+        foreach (RaycastHit hit in hits)
+        {
+           var mapComponent = hit.collider.GetComponentInParent<IMap>();
+            if (mapComponent != null)
+            {
+              SetFocusDepth(Vector3.Distance(transform.position, hit.point));
+                SetFocusCoordintes(_terrain.GetCoordinates(hit.point));
+            }
+        }     
+    }
 
     internal void SetFocusDepth(float mapZoom)
     {
        m_mapDepth = mapZoom;
+    }
+
+    internal void Toggle(bool on)
+    {
+        _running = on;
+        if (on)
+        {
+            CalculateFocusCoordinates();
+        }
     }
 }

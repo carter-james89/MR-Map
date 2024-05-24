@@ -27,18 +27,21 @@ Shader "Custom/StencilMask"
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile_instancing
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             struct Attributes
             {
                 float4 position : POSITION;
                 float2 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float2 uv : TEXCOORD0;
                 float4 position : SV_POSITION;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             TEXTURE2D(_MainTex);
@@ -48,7 +51,11 @@ Shader "Custom/StencilMask"
             Varyings vert(Attributes v)
             {
                 Varyings o;
-                o.position = TransformObjectToHClip(v.position);
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+                float3 worldPosition = mul(unity_ObjectToWorld, v.position).xyz;
+                o.position = TransformWorldToHClip(float4(worldPosition, 1.0));
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 return o;
             }

@@ -10,10 +10,15 @@ public class RealWorldTerrainMap : MonoBehaviour, IMap
     [SerializeField]
     private FocusControl _focusControl;
 
+    [SerializeField]
+    private Transform _hmd;
+
     private List<MapPointer> mapPointers = new List<MapPointer>();
-    private Dictionary<MapPointer, Vector2> previousCoordinates = new Dictionary<MapPointer, Vector2>();
+    private Dictionary<MapPointer, Vector3> previousPositions = new Dictionary<MapPointer, Vector3>();
     private float initialDistance = 0f;
     private float _mapZoom = 1f;
+    private Vector3 targetPosition;
+    private float smoothSpeed = 0.125f; // Adjust this value for more or less smoothing
 
     public Vector3 GetGlobalPos(float lat, float lon)
     {
@@ -41,6 +46,7 @@ public class RealWorldTerrainMap : MonoBehaviour, IMap
     void Start()
     {
         _mapZoom = _focusControl.GetMapDepth();
+        targetPosition = transform.position;
     }
 
     void Update()
@@ -53,43 +59,44 @@ public class RealWorldTerrainMap : MonoBehaviour, IMap
         {
             UpdateMultiplePointers();
         }
+
+        // Smoothly interpolate to the target position
+        transform.position = Vector3.Lerp(transform.position, targetPosition, smoothSpeed);
     }
 
     private void UpdateSinglePointer()
     {
         var pointer = mapPointers[0];
-        var currentCoordinates = GetCoordinates(pointer.transform.position);
+        var currentPosition = pointer.transform.position;
 
-        if (previousCoordinates.TryGetValue(pointer, out var prevCoordinates))
+        if (previousPositions.TryGetValue(pointer, out var prevPosition))
         {
-            var deltaCoordinates = prevCoordinates - currentCoordinates; // Inverted delta
+            var deltaPosition = currentPosition - prevPosition;
 
-            // Handle longitude wrap-around
-            if (Mathf.Abs(deltaCoordinates.x) > 180)
-            {
-                if (deltaCoordinates.x > 0)
-                {
-                    deltaCoordinates.x -= 360;
-                }
-                else
-                {
-                    deltaCoordinates.x += 360;
-                }
-            }
+            // Apply delta position to the target position's x and z positions
+            targetPosition.x += deltaPosition.x;
+            targetPosition.z += deltaPosition.z;
 
-            var focusCoordinates = _focusControl.GetFocusLatLong();
-            focusCoordinates += deltaCoordinates;
-            _focusControl.SetFocusCoordintes(focusCoordinates);
-
-            // Debug logging for delta coordinates
-            Debug.Log($"Previous Coordinates: {prevCoordinates}, Current Coordinates: {currentCoordinates}, Delta Coordinates: {deltaCoordinates}");
+            // Debug logging for delta positions
+            Debug.Log($"Previous Position: {prevPosition}, Current Position: {currentPosition}, Delta Position: {deltaPosition}");
         }
 
-        previousCoordinates[pointer] = currentCoordinates;
+        previousPositions[pointer] = currentPosition;
     }
 
     private void UpdateMultiplePointers()
     {
+        // Calculate average position of pointers
+        Vector3 averagePosition = Vector3.zero;
+        foreach (var pointer in mapPointers)
+        {
+            averagePosition += pointer.transform.position;
+        }
+        averagePosition /= mapPointers.Count;
+
+        // Calculate direction from _hmd to average position
+        Vector3 direction = (averagePosition - _hmd.position).normalized;
+
         // Handle zoom
         float currentDistance = Vector3.Distance(mapPointers[0].transform.position, mapPointers[1].transform.position);
         if (initialDistance == 0f)
@@ -98,60 +105,40 @@ public class RealWorldTerrainMap : MonoBehaviour, IMap
         }
         else
         {
-            float deltaDistance = currentDistance - initialDistance;
-            _mapZoom -= deltaDistance * 1f; // Adjust the multiplier as needed for zoom sensitivity
-            _mapZoom = Mathf.Clamp(_mapZoom, 0.1f, 20f); // Clamp zoom level to a range
-            _focusControl.SetFocusDepth(_mapZoom);
+            float deltaDistance = initialDistance - currentDistance; // Invert zoom direction
+
+            // Ensure zoom distance doesn't go negative
+            _mapZoom = Mathf.Max(0f, _mapZoom - deltaDistance * 1f); // Adjust the multiplier as needed for zoom sensitivity
+
+            // Apply movement along the direction
+            targetPosition += direction * deltaDistance;
+
             initialDistance = currentDistance;
         }
 
         // Handle focus coordinates
-        var currentCoordinatesPointer1 = GetCoordinates(mapPointers[0].transform.position);
-        var currentCoordinatesPointer2 = GetCoordinates(mapPointers[1].transform.position);
+        var currentPositionPointer1 = mapPointers[0].transform.position;
+        var currentPositionPointer2 = mapPointers[1].transform.position;
 
-        if (previousCoordinates.TryGetValue(mapPointers[0], out var prevCoordinates1) &&
-            previousCoordinates.TryGetValue(mapPointers[1], out var prevCoordinates2))
+        if (previousPositions.TryGetValue(mapPointers[0], out var prevPosition1) &&
+            previousPositions.TryGetValue(mapPointers[1], out var prevPosition2))
         {
-            var deltaCoordinates1 = prevCoordinates1 - currentCoordinatesPointer1; // Inverted delta
-            var deltaCoordinates2 = prevCoordinates2 - currentCoordinatesPointer2; // Inverted delta
+            var deltaPosition1 = currentPositionPointer1 - prevPosition1;
+            var deltaPosition2 = currentPositionPointer2 - prevPosition2;
 
-            // Handle longitude wrap-around
-            if (Mathf.Abs(deltaCoordinates1.x) > 180)
-            {
-                if (deltaCoordinates1.x > 0)
-                {
-                    deltaCoordinates1.x -= 360;
-                }
-                else
-                {
-                    deltaCoordinates1.x += 360;
-                }
-            }
-            if (Mathf.Abs(deltaCoordinates2.x) > 180)
-            {
-                if (deltaCoordinates2.x > 0)
-                {
-                    deltaCoordinates2.x -= 360;
-                }
-                else
-                {
-                    deltaCoordinates2.x += 360;
-                }
-            }
+            var averageDeltaPosition = (deltaPosition1 + deltaPosition2) / 2;
 
-            var averageDeltaCoordinates = (deltaCoordinates1 + deltaCoordinates2) / 2;
+            // Apply average delta position to the target position's x and z positions
+            targetPosition.x += averageDeltaPosition.x;
+            targetPosition.z += averageDeltaPosition.z;
 
-            var focusCoordinates = _focusControl.GetFocusLatLong();
-            focusCoordinates += averageDeltaCoordinates;
-            _focusControl.SetFocusCoordintes(focusCoordinates);
-
-            // Debug logging for delta coordinates
-            Debug.Log($"Previous Coordinates 1: {prevCoordinates1}, Current Coordinates 1: {currentCoordinatesPointer1}, Delta Coordinates 1: {deltaCoordinates1}");
-            Debug.Log($"Previous Coordinates 2: {prevCoordinates2}, Current Coordinates 2: {currentCoordinatesPointer2}, Delta Coordinates 2: {deltaCoordinates2}");
+            // Debug logging for delta positions
+            Debug.Log($"Previous Position 1: {prevPosition1}, Current Position 1: {currentPositionPointer1}, Delta Position 1: {deltaPosition1}");
+            Debug.Log($"Previous Position 2: {prevPosition2}, Current Position 2: {currentPositionPointer2}, Delta Position 2: {deltaPosition2}");
         }
 
-        previousCoordinates[mapPointers[0]] = currentCoordinatesPointer1;
-        previousCoordinates[mapPointers[1]] = currentCoordinatesPointer2;
+        previousPositions[mapPointers[0]] = currentPositionPointer1;
+        previousPositions[mapPointers[1]] = currentPositionPointer2;
     }
 
     public void OnRaycastHit(MapPointer mapPointer)
@@ -161,26 +148,32 @@ public class RealWorldTerrainMap : MonoBehaviour, IMap
     public void OnPointerClickBegin(MapPointer mapPointer)
     {
         mapPointers.Add(mapPointer);
-        previousCoordinates[mapPointer] = GetCoordinates(mapPointer.transform.position);
+        previousPositions[mapPointer] = mapPointer.transform.position;
 
         if (mapPointers.Count == 1)
         {
-            previousCoordinates[mapPointer] = GetCoordinates(mapPointer.transform.position);
+            previousPositions[mapPointer] = mapPointer.transform.position;
         }
         else if (mapPointers.Count == 2)
         {
             initialDistance = Vector3.Distance(mapPointers[0].transform.position, mapPointers[1].transform.position);
         }
+
+        // Turn off the focus control when map is being clicked
+        _focusControl.Toggle(false);
     }
 
     public void OnPointerClickEnd(MapPointer mapPointer)
     {
         mapPointers.Remove(mapPointer);
-        previousCoordinates.Remove(mapPointer);
+        previousPositions.Remove(mapPointer);
         if (mapPointers.Count < 2)
         {
             initialDistance = 0f; // Reset initial distance when less than 2 pointers are left
         }
+
+        // Turn on the focus control when map clicking ends
+        _focusControl.Toggle(true);
     }
 
     public List<MapPointer> GetMapPointers()
