@@ -37,7 +37,7 @@ public class FocusControl : MonoBehaviour
         _terrain.OnMapClickEnd.AddListener(OnPointerClickEnd);
 
         _focusLatLong = _terrain.GetCoordinates(_startPoint.position);
-        targetPosition = _terrain.transform.position;
+        targetPosition = transform.position;
         Debug.Log("Set start coordinates to " + _focusLatLong);
     }
 
@@ -53,7 +53,7 @@ public class FocusControl : MonoBehaviour
         }
 
         // Smoothly interpolate to the target position
-        _terrain.transform.position = Vector3.Lerp(_terrain.transform.position, targetPosition, smoothSpeed);
+        transform.position = Vector3.Lerp(transform.position, targetPosition, smoothSpeed);
 
         var desiredFocusPoint = _terrain.GetGlobalPos(_focusLatLong.x, _focusLatLong.y);
         m_DesiredPoint.position = desiredFocusPoint;
@@ -102,11 +102,10 @@ public class FocusControl : MonoBehaviour
         {
             initialDistance = 0f; // Reset initial distance when less than 2 pointers are left
         }
-        if(mapPointers.Count == 0)
+        if (mapPointers.Count == 0)
         {
             Toggle(true);
         }
-    
     }
 
     private void UpdateSinglePointer()
@@ -116,14 +115,14 @@ public class FocusControl : MonoBehaviour
 
         if (previousPositions.TryGetValue(pointer, out var prevPosition))
         {
-            var deltaPosition = currentPosition - prevPosition;
+            var deltaPosition = prevPosition - currentPosition; // Inverted delta
 
             // Apply delta position to the target position's x and z positions
             targetPosition.x += deltaPosition.x;
             targetPosition.z += deltaPosition.z;
 
             // Debug logging for delta positions
-            Debug.Log($"Previous Position: {prevPosition}, Current Position: {currentPosition}, Delta Position: {deltaPosition}");
+          //  Debug.Log($"Previous Position: {prevPosition}, Current Position: {currentPosition}, Delta Position: {deltaPosition}");
         }
 
         previousPositions[pointer] = currentPosition;
@@ -139,8 +138,8 @@ public class FocusControl : MonoBehaviour
         }
         averagePosition /= mapPointers.Count;
 
-        // Calculate direction from _hmd to average position
-        Vector3 direction = (averagePosition - runtimeCamera.transform.position).normalized;
+        // Calculate direction from transform to average position
+        Vector3 direction = (averagePosition - transform.position).normalized;
 
         // Handle zoom
         float currentDistance = Vector3.Distance(mapPointers[0].transform.position, mapPointers[1].transform.position);
@@ -150,10 +149,10 @@ public class FocusControl : MonoBehaviour
         }
         else
         {
-            float deltaDistance = initialDistance - currentDistance; // Invert zoom direction
+            float deltaDistance = currentDistance - initialDistance; // Normal zoom direction
 
-            // Ensure zoom distance doesn't go negative
-            _mapZoom = Mathf.Max(0f, _mapZoom - deltaDistance * 1f); // Adjust the multiplier as needed for zoom sensitivity
+            // Ensure zoom distance doesn't go below 0.1f
+            _mapZoom = Mathf.Max(0.1f, _mapZoom - deltaDistance * 1f); // Adjust the multiplier as needed for zoom sensitivity
 
             // Apply movement along the direction
             targetPosition += direction * deltaDistance;
@@ -168,8 +167,8 @@ public class FocusControl : MonoBehaviour
         if (previousPositions.TryGetValue(mapPointers[0], out var prevPosition1) &&
             previousPositions.TryGetValue(mapPointers[1], out var prevPosition2))
         {
-            var deltaPosition1 = currentPositionPointer1 - prevPosition1;
-            var deltaPosition2 = currentPositionPointer2 - prevPosition2;
+            var deltaPosition1 = prevPosition1 - currentPositionPointer1; // Inverted delta
+            var deltaPosition2 = prevPosition2 - currentPositionPointer2; // Inverted delta
 
             var averageDeltaPosition = (deltaPosition1 + deltaPosition2) / 2;
 
@@ -178,8 +177,8 @@ public class FocusControl : MonoBehaviour
             targetPosition.z += averageDeltaPosition.z;
 
             // Debug logging for delta positions
-            Debug.Log($"Previous Position 1: {prevPosition1}, Current Position 1: {currentPositionPointer1}, Delta Position 1: {deltaPosition1}");
-            Debug.Log($"Previous Position 2: {prevPosition2}, Current Position 2: {currentPositionPointer2}, Delta Position 2: {deltaPosition2}");
+         //   Debug.Log($"Previous Position 1: {prevPosition1}, Current Position 1: {currentPositionPointer1}, Delta Position 1: {deltaPosition1}");
+          //  Debug.Log($"Previous Position 2: {prevPosition2}, Current Position 2: {currentPositionPointer2}, Delta Position 2: {deltaPosition2}");
         }
 
         previousPositions[mapPointers[0]] = currentPositionPointer1;
@@ -196,8 +195,7 @@ public class FocusControl : MonoBehaviour
         var dir = transform.position - camPos;
         var desiredPos = transform.position + (dir.normalized * m_mapDepth);
         var offset = desiredFocusPoint - desiredPos;
-        desiredPos = _terrain.transform.position - offset;
-        _terrain.transform.position = Vector3.Lerp(_terrain.transform.position, desiredPos, Time.deltaTime * _focusSpeed);
+        transform.position = Vector3.Lerp(transform.position, desiredPos - offset, Time.deltaTime * _focusSpeed);
     }
 
     private void CalculateFocusCoordinates()
