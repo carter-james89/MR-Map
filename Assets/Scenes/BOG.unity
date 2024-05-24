@@ -7405,7 +7405,7 @@ Transform:
   m_GameObject: {fileID: 1443568765}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.5403067, y: -2.6372929, z: 31.7774}
+  m_LocalPosition: {x: -8.92694, y: -3.6490152, z: 17.107605}
   m_LocalScale: {x: 0.4228392, y: 0.09567483, z: 0.7981145}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8965,7 +8965,6 @@ MonoBehaviour:
   m_mapDepth: 5
   runtimeCamera: {fileID: 2032545870}
   _terrain: {fileID: 1881664962}
-  _focusSpeed: 1
 --- !u!1 &1792502931
 GameObject:
   m_ObjectHideFlags: 0
@@ -9250,7 +9249,7 @@ Transform:
   m_GameObject: {fileID: 1881664960}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -116.1368, y: -2.9584372, z: -84.863014}
+  m_LocalPosition: {x: -117.94075, y: -4.046146, z: -86.75171}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -9270,7 +9269,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _terrain: {fileID: 215887193}
-  _focusControl: {fileID: 1771003724}
+  OnMapClickBegin:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMapClickEnd:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!4 &1882568729 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7931917171458542673, guid: 89e80c47615e4f043926d66492d3ca5f, type: 3}

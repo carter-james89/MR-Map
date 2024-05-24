@@ -156,7 +156,10 @@ public class MRRig : MonoBehaviour
         {
             return;
         }
-
+        if(handSubsystem != null)
+        {
+            return;
+        }
         try
         {
             Debug.Log("Initializing hand subsystem...");
