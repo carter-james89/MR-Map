@@ -42,8 +42,8 @@ public class MRRig : MonoBehaviour
             return;
         }
 
-        try
-        {
+        //try
+        //{
             CheckDeviceValidity();
 
             bool leftHandTracked = false;
@@ -59,6 +59,7 @@ public class MRRig : MonoBehaviour
             {
                 leftHand.UpdateHandPosition(handSubsystem.leftHand);
                 leftHand.DetectPinchGesture(handSubsystem.leftHand);
+                leftHand.DetectGripPose();
             }
             else
             {
@@ -69,16 +70,17 @@ public class MRRig : MonoBehaviour
             {
                 rightHand.UpdateHandPosition(handSubsystem.rightHand);
                 rightHand.DetectPinchGesture(handSubsystem.rightHand);
+                rightHand.DetectGripPose();
             }
             else
             {
                 rightHand.gameObject.SetActive(false);
             }
-        }
-        catch (System.Exception ex)
-        {
-            Debug.LogError("Error in Update method: " + ex.Message);
-        }
+        //}
+        //catch (System.Exception ex)
+        //{
+        //    Debug.LogError("Error in Update method: " + ex.Message);
+        //}
     }
 
     void OnDisable()

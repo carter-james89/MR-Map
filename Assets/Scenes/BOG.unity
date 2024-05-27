@@ -744,7 +744,16 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  OnGripBegin:
+    m_PersistentCalls:
+      m_Calls: []
+  OnGripEnd:
+    m_PersistentCalls:
+      m_Calls: []
+  _wristRoot: {fileID: 0}
   pinchThreshold: 0.02
+  gripDotThreshold: 0.9
+  gripPose: {fileID: 0}
 --- !u!1 &137960309
 GameObject:
   m_ObjectHideFlags: 0
@@ -1078,7 +1087,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.0011837493, y: 0.0011837493, z: 0.0011837493}
+  m_LocalScale: {x: 0.0167, y: 0.0167, z: 0.0167}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1668157369}
@@ -3397,7 +3406,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2caab3c728f7df40b92cb2f953fc808, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rayDistance: 100
+  rayDistance: 10000
   _hmd: {fileID: 2032545873}
   _lineOrigin: {fileID: 1371706356}
 --- !u!1 &693526594
@@ -4619,7 +4628,40 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  OnGripBegin:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1881664963}
+        m_TargetAssemblyTypeName: JumpToMap, Assembly-CSharp
+        m_MethodName: PutUserOnMap
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnGripEnd:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1881664960}
+        m_TargetAssemblyTypeName: FocusControl, Assembly-CSharp
+        m_MethodName: 
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 1078269881}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Transform, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _wristRoot: {fileID: 1093831400}
   pinchThreshold: 0.02
+  gripDotThreshold: 0.98
+  gripPose: {fileID: 11400000, guid: e4633e477a909d445a470bfcd10e974b, type: 2}
 --- !u!82 &1078269883
 AudioSource:
   m_ObjectHideFlags: 0
@@ -8326,7 +8368,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2caab3c728f7df40b92cb2f953fc808, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rayDistance: 100
+  rayDistance: 10000
   _hmd: {fileID: 2032545873}
   _lineOrigin: {fileID: 2062305423}
 --- !u!1001 &1546637062
@@ -8940,7 +8982,7 @@ Transform:
   m_GameObject: {fileID: 1771003719}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.025000002}
+  m_LocalPosition: {x: 0, y: 0.793, z: -0.025000002}
   m_LocalScale: {x: 0.24326035, y: 1.0751, z: 0.12887876}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -8966,6 +9008,7 @@ MonoBehaviour:
   _startPoint: {fileID: 392550799}
   m_mapDepth: 5
   runtimeCamera: {fileID: 2032545870}
+  User: {fileID: 415275993}
   _terrain: {fileID: 1881664962}
 --- !u!1 &1792502931
 GameObject:
@@ -9234,7 +9277,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1881664961}
+  - component: {fileID: 1881664964}
   - component: {fileID: 1881664962}
+  - component: {fileID: 1881664963}
   m_Layer: 0
   m_Name: Map
   m_TagString: Untagged
@@ -9251,7 +9296,7 @@ Transform:
   m_GameObject: {fileID: 1881664960}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -117.94075, y: -4.046146, z: -86.75171}
+  m_LocalPosition: {x: -1879, y: -4.046146, z: -1257}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -9277,6 +9322,36 @@ MonoBehaviour:
   OnMapClickEnd:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1881664963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1881664960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9a78e956fa415d459132eae3dfd7c47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapPointer: {fileID: 692074064}
+  user: {fileID: 415275993}
+  controller: {fileID: 1881664964}
+  focusControl: {fileID: 1771003724}
+  passthrough: {fileID: 2032545875}
+--- !u!114 &1881664964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1881664960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7e2cc1e28fabb840bb0103e79d5821b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _stencilShader: {fileID: 4800000, guid: a3652283ad561fc4c87be025e6345701, type: 3}
 --- !u!4 &1882568729 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7931917171458542673, guid: 89e80c47615e4f043926d66492d3ca5f, type: 3}

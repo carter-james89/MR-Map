@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -16,6 +17,9 @@ public class FocusControl : MonoBehaviour
     [SerializeField]
     private Camera runtimeCamera;
 
+    [SerializeField]
+    private Transform User;
+
     private Vector2 _focusLatLong;
 
     private float _focusSpeed = .1f;
@@ -31,6 +35,8 @@ public class FocusControl : MonoBehaviour
     private Vector3 targetPosition;
     private float smoothSpeed = 0.125f;
 
+    private Transform grabbedWindow = null;
+
     private void Awake()
     {
         _terrain.OnMapClickBegin.AddListener(OnPointerClickBegin);
@@ -43,17 +49,24 @@ public class FocusControl : MonoBehaviour
 
     void Update()
     {
-        if (mapPointers.Count == 1)
+        if (grabbedWindow != null)
         {
-            UpdateSinglePointer();
+            UpdateGrabbedWindow();
         }
-        else if (mapPointers.Count > 1)
+        else
         {
-            UpdateMultiplePointers();
-        }
+            if (mapPointers.Count == 1)
+            {
+                UpdateSinglePointer();
+            }
+            else if (mapPointers.Count > 1)
+            {
+                UpdateMultiplePointers();
+            }
 
-        // Smoothly interpolate to the target position
-        transform.position = Vector3.Lerp(transform.position, targetPosition, smoothSpeed);
+            // Smoothly interpolate to the target position
+            transform.position = Vector3.Lerp(transform.position, targetPosition, smoothSpeed);
+        }
 
         var desiredFocusPoint = _terrain.GetGlobalPos(_focusLatLong.x, _focusLatLong.y);
         m_DesiredPoint.position = desiredFocusPoint;
@@ -122,7 +135,7 @@ public class FocusControl : MonoBehaviour
             targetPosition.z += deltaPosition.z;
 
             // Debug logging for delta positions
-          //  Debug.Log($"Previous Position: {prevPosition}, Current Position: {currentPosition}, Delta Position: {deltaPosition}");
+            //  Debug.Log($"Previous Position: {prevPosition}, Current Position: {currentPosition}, Delta Position: {deltaPosition}");
         }
 
         previousPositions[pointer] = currentPosition;
@@ -177,12 +190,53 @@ public class FocusControl : MonoBehaviour
             targetPosition.z += averageDeltaPosition.z;
 
             // Debug logging for delta positions
-         //   Debug.Log($"Previous Position 1: {prevPosition1}, Current Position 1: {currentPositionPointer1}, Delta Position 1: {deltaPosition1}");
-          //  Debug.Log($"Previous Position 2: {prevPosition2}, Current Position 2: {currentPositionPointer2}, Delta Position 2: {deltaPosition2}");
+            //   Debug.Log($"Previous Position 1: {prevPosition1}, Current Position 1: {currentPositionPointer1}, Delta Position 1: {deltaPosition1}");
+            //  Debug.Log($"Previous Position 2: {prevPosition2}, Current Position 2: {currentPositionPointer2}, Delta Position 2: {deltaPosition2}");
         }
 
         previousPositions[mapPointers[0]] = currentPositionPointer1;
         previousPositions[mapPointers[1]] = currentPositionPointer2;
+    }
+
+    private void UpdateGrabbedWindow()
+    {
+        transform.eulerAngles = new Vector3(0, transform.eulerAngles.y, 0);
+        // Assume the grabbed window follows the first map pointer
+        //if (mapPointers.Count > 0)
+        //{
+        //    var pointer = mapPointers[0];
+        //    var currentPosition = pointer.transform.position;
+
+        //    if (previousPositions.TryGetValue(pointer, out var prevPosition))
+        //    {
+        //        var deltaPosition = currentPosition - prevPosition;
+
+        //        // Apply delta position to the grabbed window, constrain rotation
+        //        var newPosition = grabbedWindow.position + deltaPosition;
+        //        grabbedWindow.position = new Vector3(newPosition.x, grabbedWindow.position.y, newPosition.z);
+
+        //        // Debug logging for delta positions
+        //        Debug.Log($"Previous Position: {prevPosition}, Current Position: {currentPosition}, Delta Position: {deltaPosition}");
+        //    }
+
+        //    previousPositions[pointer] = currentPosition;
+        //}
+    }
+
+    public void OnWindowGrabbed(Transform window)
+    {
+        Toggle(false);
+        grabbedWindow = window;
+        User.parent = null;
+        transform.SetParent(window);
+    }
+
+    public void OnWindowReleased(Transform window)
+    {
+        transform.SetParent(null);
+        Toggle(true);
+        grabbedWindow = null;
+        User.SetParent(transform);
     }
 
     public void SetFocusCoordintes(Vector2 vector2)
